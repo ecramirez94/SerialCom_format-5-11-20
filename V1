@@ -1,0 +1,60 @@
+#define POT_PIN A0 // Change this to whichever pin your potentiometer is currently on.
+
+int dataByte_1 = 0; // This one will contain the ADC value in the lower 10 bits
+int dataByte_2 = 0b1010101000000000;  // These three are made up
+int dataByte_3 = 0b1111111111111111;
+int dataByte_4 = 0b0000000011111111;
+
+// ============= States =============
+#define WAIT 0
+#define SERIAL_COM 1
+#define JOSH_CUSTOM 2
+
+byte action = 0;
+
+void setup() 
+{
+  pinMode(POT_PIN, INPUT);
+
+  Serial.begin(9600); // Change this to 115200 for much faster data transfer
+}
+
+void loop() 
+{
+  switch(action)
+  {
+    case SERIAL_COM:
+      dataByte_1 = analogRead(POT_PIN);
+      
+      Serial.print(dataByte_1);
+      Serial.print('\t');
+      Serial.print(dataByte_2);
+      Serial.print('\t');
+      Serial.print(dataByte_3);
+      Serial.print('\t');
+      Serial.print(dataByte_4);
+      Serial.print('\t');
+
+      action = WAIT;
+    break;
+    
+    case JOSH_CUSTOM:
+
+      action = WAIT;
+    break;
+    
+    default:
+      // Wait here
+    break;
+  }
+}
+
+void serialEvent(void)
+{
+  String command = Serial.readStringUntil('\n');
+
+  if (command.equals(F("GET_DATA")))
+    action = SERIAL_COM;
+  if (command.equals(F("Josh's custom command")))
+     action = JOSH_CUSTOM;
+}
